@@ -7,6 +7,6 @@
 #include <dlib/image_io.h>
 #include <dlib/opencv/cv_image.h>
 #include "headsegmenter.h"
-BOOL DetectProfile(std::vector<cv::Point2i> points);	//判别是否是侧脸
+BOOL DetectProfile(std::vector<cv::Point2i> points, float val_min, float val_max);	//判别是否是侧脸
 BOOL JudgeFrontFace(const dip::Depth* depthshort, cv::Mat color, dlib::frontal_face_detector detector, dlib::shape_predictor sp);
 #endif

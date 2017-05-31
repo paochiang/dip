@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include "FrameSync.h"
 #include "KinectCollection.h"
+#include <time.h>
 #define	SafeRelease(ptr)		do{ if ( ptr != NULL ){ ptr->Release(); ptr = NULL; } }while(0)
 #define	SafeDelete(ptr)		do{ if ( ptr != NULL ){ delete ptr; ptr = NULL; } }while(0)
 
@@ -31,7 +32,7 @@ bool KinectCollection::init(int idx)
 	is_collction_ = false;
     color_buffer_.resize(color_width_*color_height_* sizeof(RGBQUAD));
 	map_mat_ = cv::Mat(depth_height_, depth_width_, CV_8UC3);
-	color_mat_ = cv::Mat::zeros(color_height_, color_width_, CV_8UC3);
+	color_mat_ = cv::Mat::zeros(color_height_, color_width_, CV_8UC4);
 	return true;
 }
 
@@ -65,22 +66,28 @@ void KinectCollection::stop()
 
 void KinectCollection::collctionThread()
 {
+	clock_t s1, s2;
 	std::lock_guard<std::mutex> lock(on_collction_mutex_);
 	__int64 last_tick = GetTickCount();
 	while (is_collction_ )
 	{
 		if (GetTickCount() - last_tick >=fps && getFrameSync().isNeedSend())
 		{
+			//s1 = clock();
 			FrameData frame;
 			frame.timestamp = GetTickCount();
 			updateColor();
 			updateDepth();
 			updateMap();
+			//s2 = clock();
+			
 			frame.color = color_mat_.clone();
 			frame.depth = depth_mat_.clone();
 			frame.c2d_map = map_mat_.clone();
+			//std::cout << "time cost:" << s2 - s1 << std::endl;
 			collction_cb_(frame);
 			last_tick = frame.timestamp;
+			
 	
 		}
 	}
@@ -216,41 +223,41 @@ void KinectCollection::updateColor()
         INT64 nTime = 0;
         int nWidth = 0;
         int nHeight = 0;
-        ColorImageFormat imageFormat = ColorImageFormat_None;
+       // ColorImageFormat imageFormat = ColorImageFormat_None;
         UINT nBufferSize = 0;       
-        hr = pColorFrame->get_RelativeTime(&nTime);
+  //      hr = pColorFrame->get_RelativeTime(&nTime);
 
-        IFrameDescription* pFrameDescription = NULL;
-		hr = getFrameSize(pColorFrame,&pFrameDescription,nWidth,nHeight);
+  //      IFrameDescription* pFrameDescription = NULL;
+		//hr = getFrameSize(pColorFrame,&pFrameDescription,nWidth,nHeight);
+
+        //if (SUCCEEDED(hr))
+        //{
+        //    hr = pColorFrame->get_RawColorImageFormat(&imageFormat);
+        //}
 
         if (SUCCEEDED(hr))
         {
-            hr = pColorFrame->get_RawColorImageFormat(&imageFormat);
-        }
-
-        if (SUCCEEDED(hr))
-        {
-			auto pDstBuffer = &color_buffer_[0];
-            pBuffer = (RGBQUAD*)pDstBuffer;
+			//auto pDstBuffer = &color_buffer_[0];
+   //         pBuffer = (RGBQUAD*)pDstBuffer;
             nBufferSize = color_width_ * color_height_ * sizeof(RGBQUAD);
             hr = pColorFrame->CopyConvertedFrameDataToArray(nBufferSize
-                , reinterpret_cast<BYTE*>(pBuffer), ColorImageFormat_Bgra);               
-
-			int pixsize = sizeof(RGBQUAD);
-			for (int row = 0;row < color_mat_.rows;row++)
-			{
-				for (int col = 0;col < color_mat_.cols;col++)
-				{
-					auto& dst = color_mat_.at<cv::Vec3b>(row,col);
-					auto& src = pBuffer[row*color_width_ + col];
-					dst[0] = src.rgbBlue;
-					dst[1] = src.rgbGreen;
-					dst[2] = src.rgbRed;
-				}
-			}
+               // , reinterpret_cast<BYTE*>(pBuffer), ColorImageFormat_Bgra);     
+				, reinterpret_cast<BYTE*>(color_mat_.data), ColorImageFormat_Bgra);
+			//int pixsize = sizeof(RGBQUAD);
+			//for (int row = 0;row < color_mat_.rows;row++)
+			//{
+			//	for (int col = 0;col < color_mat_.cols;col++)
+			//	{
+			//		auto& dst = color_mat_.at<cv::Vec3b>(row,col);
+			//		auto& src = pBuffer[row*color_width_ + col];
+			//		dst[0] = src.rgbBlue;
+			//		dst[1] = src.rgbGreen;
+			//		dst[2] = src.rgbRed;
+			//	}
+			//}
 
        }
-        SafeReleaseObj(pFrameDescription);
+      //  SafeReleaseObj(pFrameDescription);
     }
 
     SafeReleaseObj(pColorFrame);
@@ -281,8 +288,10 @@ void KinectCollection::updateMap()
 					if (p.X != -std::numeric_limits<float>::infinity() && p.Y != -std::numeric_limits<float>::infinity()) {
 						int colorX = static_cast<int>(p.X + 0.5f);
 						int colorY = static_cast<int>(p.Y + 0.5f);
-						if ((colorX >= 0 && colorX < color_width_) && (colorY >= 0 && colorY < color_height_))
-							map_mat_.at<cv::Vec3b>(y, x) = color_mat_.at<cv::Vec3b>(colorY, colorX);
+						if ((colorX >= 0 && colorX < color_width_) && (colorY >= 0 && colorY < color_height_)) {
+							map_mat_.at<cv::Vec3b>(y, x) = cv::Vec3b(color_mat_.at<cv::Vec4b>(colorY, colorX)[0], color_mat_.at<cv::Vec4b>(colorY, colorX)[1], color_mat_.at<cv::Vec4b>(colorY, colorX)[2]);
+						}
+							
 					}
 				}
 		}

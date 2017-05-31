@@ -206,22 +206,25 @@ namespace dip {
 				}
 			}
 		}
+		if (foreground_depth > max_depth || foreground_depth < min_depth) {
+#ifdef SHOWCOUT
+			std::cout << "foreground depth value is not between " << min_depth << "---" << max_depth << std::endl;
+#endif
+			return -1;
+		}
+		if (foreground_size < width_ * height_ * foreground_size_percent) {
+#ifdef SHOWCOUT
+			std::cout << "foreground size:" << foreground_size << " is too small!" << std::endl;
+#endif
+			return -1;
+		}
+
 		int head_center = 0;
 		int head_bottom = 0;
 		int head_left = 0;
 		int head_right = 0;
 		int head_top = 0;
-		//cv::Mat depth_foreground = cv::Mat::zeros(height_, width_, CV_8UC1);
-		//for (int r = 0; r < height_; r++) {
-		   // for (int c = 0; c < width_; c++) {
-			  //  int index = r * width_ + c;
-			  //  if (labels_[index] == foreground_id) {
-			  //	  depth_foreground.at<uchar>(r, c) = 255;
-			  //  }
-		   // }
-		//}
-	  //  cv::imshow("depth_foreground", depth_foreground);
-	  //  cv::moveWindow("depth_foreground", 600, 40);
+
 		// Determine head region
 		memset(column_histogram_, 0, sizeof(int) * width);
 		memset(row_histogram_, 0, sizeof(int) * height);
@@ -237,19 +240,6 @@ namespace dip {
 					count++;
 				}
 			}
-		}
-
-		if (foreground_depth > max_depth || foreground_depth < min_depth) {
-#ifdef SHOWCOUT
-			std::cout << "foreground depth value is not between " << min_depth << "---" << max_depth << std::endl;
-#endif
-			return -1;
-		}
-		if (foreground_size < width_ * height_ * foreground_size_percent) {
-#ifdef SHOWCOUT
-			std::cout << "foreground size:" << foreground_size << " is too small!" << std::endl;
-#endif
-			return -1;
 		}
 		// Locate Top of Head
 		int max_value = 0;
@@ -536,11 +526,11 @@ namespace dip {
 			}
 		}
 		if (foreground_depth > max_depth || foreground_depth < min_depth) {
-			std::cout << "foreground depth value is not between " << min_depth << "---" << max_depth << std::endl;
+			//std::cout << "foreground depth value is not between " << min_depth << "---" << max_depth << std::endl;
 			return cv::Rect(-1, -1, -1, -1);
 		}
 		if (foreground_size < width_ * height_ * foreground_size_percent) {
-			std::cout << "foreground size:" << foreground_size << " is too small!" << std::endl;
+			//std::cout << "foreground size:" << foreground_size << " is too small!" << std::endl;
 			return cv::Rect(-1, -1, -1, -1);
 		}
 		int head_center = 0;

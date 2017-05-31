@@ -9,7 +9,7 @@ Description	: 一些共用数据定义
 #include "opencv2/opencv.hpp"
 #include <functional>
 
-const int fps = 30;
+const int fps = 3;
 const int sync_max_interval = 60;
 
 struct FrameData

@@ -1,4 +1,5 @@
 #include "JudgeFrontFace.h"
+#include <fstream>
 
 using namespace cv;
 using namespace std;
@@ -26,7 +27,7 @@ BOOL JudgeFrontFace(const dip::Depth* depthshort, cv::Mat color, frontal_face_de
 	if (_faceRect != cv::Rect(-1, -1, -1, -1))
 	{
 		//有人脸区域，进行人脸检测
-		cv::Mat color_Crop = color(_faceRect);
+		//cv::Mat color_Crop = color(_faceRect);
 		cv_image<rgb_pixel> img(color(_faceRect));
 		std::vector<dlib::rectangle> dets = detector(img);
 		if (dets.size() > 0)
@@ -38,7 +39,7 @@ BOOL JudgeFrontFace(const dip::Depth* depthshort, cv::Mat color, frontal_face_de
 				landmark.push_back(cv::Point2i(shape.part(i).x(), shape.part(i).y()));
 				//circle(color_Crop, cv::Point(shape.part(i).x(), shape.part(i).y()), 1, cv::Scalar(0, 0, 255));
 			}
-			BOOL FrontFaceFlag = DetectProfile(landmark);	//是正脸返回1，侧脸返回0
+			BOOL FrontFaceFlag = DetectProfile(landmark, 0.618, 1.618);	//是正脸返回1，侧脸返回0
 			return FrontFaceFlag;
 		}
 		else
@@ -48,7 +49,7 @@ BOOL JudgeFrontFace(const dip::Depth* depthshort, cv::Mat color, frontal_face_de
 	}
 }
 
-BOOL DetectProfile(std::vector<cv::Point2i> points)	//判别是否是侧脸
+BOOL DetectProfile(std::vector<cv::Point2i> points, float val_min, float val_max)	//判别是否是侧脸
 {
 	float centerX = (points[27].x + points[28].x + points[29].x + points[30].x) / 4.0;
 
@@ -64,10 +65,10 @@ BOOL DetectProfile(std::vector<cv::Point2i> points)	//判别是否是侧脸
 	suml = suml / 8;
 	sumr = sumr / 8;
 
-	float value1 = abs(abs(suml - centerX) - abs(sumr - centerX));
+	//float value1 = abs(abs(suml - centerX) - abs(sumr - centerX));
 	float value2 = abs(suml - centerX) / abs(sumr - centerX);
-
-	if (value2 > 1.1 || value2 < 0.65)
+	//std::cout << "value:" << value2 << std::endl;
+	if (value2 > val_max || value2 < val_min)
 		return FALSE;
 	else
 		return TRUE;

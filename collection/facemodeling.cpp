@@ -37,8 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <numeric>
 #include "face_detect/JudgeFrontFace.h"
-#define DEBUGING
-#define STDOUT
+//#define DEBUGING
+//#define STDOUT
 
 using namespace Eigen;
 
@@ -163,14 +163,23 @@ int FaceModeling::Run(const Depth *depth, Color *normal_map, cv::Mat ColorImage,
 	RetrieveMeshNow = false;
 	TransformFrameToGlobal.resize(kKinect, Eigen::Matrix4f::Identity());
 
+		//bool isFrontalFaceDetected = JudgeFrontFace(depth, ColorImage, FaceDetector, ShapePredictor);
+		//if (!isFrontalFaceDetected) {
+		//	std::cout << "Failed to detect frontal face!================================" << std::endl;
+		//	return -1;
+		//}
+		//return -1;
+
 	// Face detection
-	//if (!isHumanPresent) {
-	//	bool isFrontalFaceDetected = JudgeFrontFace(depth, ColorImage, FaceDetector, ShapePredictor);
-	//	if (!isFrontalFaceDetected) {
-	//		std::cout << "Failed to detect frontal face!" << std::endl;
-	//		return -1;
-	//	}
-	//}
+	if (!isHumanPresent) {
+		bool isFrontalFaceDetected = JudgeFrontFace(depth, ColorImage, FaceDetector, ShapePredictor);
+		if (!isFrontalFaceDetected) {
+#ifdef STDOUT
+			std::cout << "Failed to detect frontal face!" << std::endl;
+#endif
+			return -1;
+		}
+	}
 
 	// Segment the user's head from the depth image.
 	std::vector<bool> isSegmentationOK(kKinect, false);
@@ -259,7 +268,6 @@ int FaceModeling::Run(const Depth *depth, Color *normal_map, cv::Mat ColorImage,
 		  bilateral_filter_.Run(kRegistrationBilateralFilterSigmaD,
 			  kRegistrationBilateralFilterSigmaR,
 			  width_, height_, filtered_depth_ + k * width_ * height_, denoised_depth_ + k * width_ * height_);
-
 		  // Construct depth image pyramid.
 		  Copy(depth_pyramid_[k][0], denoised_depth_ + k * width_ * height_, sizeof(Depth) * width_ * height_);
 		  for (int i = 1; i < kPyramidLevels; i++) {

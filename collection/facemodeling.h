@@ -128,7 +128,7 @@ const float kIntegrationBilateralFilterSigmaR = 1.0f / (100.0f * 100.0f);
 #endif
 
 // Number of levels in the depth pyramid.
-const int kPyramidLevels = 3;
+const int kPyramidLevels = 2;
 
 // The following parameters define how the images are downsampled. The value of
 // kDownsampleFactor determines how much the image dimensions are reduced. The
@@ -154,10 +154,15 @@ const int kDownsampleMaxDifference = 100;
 // quickly. Point correspondences should be near each other in space, and their
 // normals should point in a similar direction. kDistanceThreshold and
 // kNormalThreshold are used to throw away bad corresponding points.
-const int kICPIterations[kPyramidLevels] = { 20, 15, 10 };
-const int kMinCorrespondences[kPyramidLevels + 1] = { 500, 250, 50, 10 };
-const float kDistanceThreshold[kPyramidLevels + 1] = { 50.0f, 100.0f, 150.0f, 200.0f };
-const float kNormalThreshold[kPyramidLevels + 1] = { 0.524f, 0.611f, 0.698f, 0.785f };
+
+const int kICPIterations[kPyramidLevels] = {15 , 10};
+const int kMinCorrespondences[kPyramidLevels + 1] = { 250, 50, 10 };
+const float kDistanceThreshold[kPyramidLevels + 1] = {100.0f, 150.0f, 200.0f };
+const float kNormalThreshold[kPyramidLevels + 1] = {0.611f, 0.698f, 0.785f};
+//const int kICPIterations[kPyramidLevels] = { 20, 15 , 10};
+//const int kMinCorrespondences[kPyramidLevels + 1] = { 500, 250, 50, 10 };
+//const float kDistanceThreshold[kPyramidLevels + 1] = { 50.0f, 100.0f, 150.0f, 200.0f };
+//const float kNormalThreshold[kPyramidLevels + 1] = { 0.524f, 0.611f, 0.698f, 0.785f};
 const float kMaxTranslation = 500.0f;
 const float kMaxRotation = 1.047f;
 const int kMaxFailedFrames = 5;
